@@ -3,7 +3,7 @@ from django_filters.constants import EMPTY_VALUES
 from django.db.models import Q
 
 
-class MultipleFieldsContainsFilter(Filter):
+class CrossFieldSearchFilter(Filter):
     def __init__(
         self,
         field_name=None,
@@ -37,6 +37,7 @@ class MultipleFieldsContainsFilter(Filter):
                 if Qcombined is None
                 else Qcombined | Q(**{lookup: value})
             )
+
         qs = self.get_method(qs)(Qcombined)
         if self.distinct:
             qs = qs.distinct()
