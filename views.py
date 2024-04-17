@@ -47,8 +47,14 @@ class FilterStoexMixin(FilterMixin):
                 data = QueryDict(filterstore.data)
             except Exception as e:
                 raise e
+        elif self.request.POST:
+            data = self.request.POST
         else:
-            data = self.request.POST or None
+            try:
+                filterstore = FilterStore.objects.filter(user=self.request.user).first()
+                data = QueryDict(filterstore.data)
+            except Exception as e:
+                data = None
 
         kwargs = {
             "data": data,
