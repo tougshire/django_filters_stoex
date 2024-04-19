@@ -12,7 +12,7 @@ from django_filters.constants import ALL_FIELDS
 from django_filters.filterset import filterset_factory
 from django_filters.views import FilterMixin
 
-from .forms import FilterstoreSaveForm
+from .forms import CSVOptionForm, FilterstoreRetrieveForm, FilterstoreSaveForm
 from .models import FilterStore
 from urllib.parse import urlencode
 from django.template import loader
@@ -201,3 +201,13 @@ class FilterView(MultipleObjectTemplateResponseMixin, BaseFilterView):
     """
 
     template_name_suffix = "_filter"
+
+    def get_context_data(self, *args, **kwargs):
+        context_data = super().get_context_data(*args, **kwargs)
+        context_data["filterstore_retrieve"] = FilterstoreRetrieveForm(
+            request=self.request
+        )
+        context_data["filterstore_save"] = FilterstoreSaveForm()
+        context_data["as_csv"] = CSVOptionForm()
+
+        return context_data
