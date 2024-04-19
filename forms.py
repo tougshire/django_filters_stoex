@@ -9,11 +9,11 @@ In the template, put this form in it's own form element ( see example below )
 
 class FilterstoreRetrieveForm(forms.Form):
     def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop("request", None)
+        request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
-        if self.request is not None:
+        if request is not None:
             self.fields["from_store"].queryset = FilterStore.objects.filter(
-                user=self.request.user
+                user=request.user
             )
 
     from_store = forms.ModelChoiceField(
