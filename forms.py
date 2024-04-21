@@ -10,10 +10,16 @@ In the template, put this form in it's own form element ( see example below )
 class FilterstoreRetrieveForm(forms.Form):
     def __init__(self, *args, **kwargs):
         request = kwargs.pop("request", None)
+        app_name = kwargs.pop("app_name", None)
+        model_name = kwargs.pop("model_name", None)
+
         super().__init__(*args, **kwargs)
+
         if request is not None:
+            if app_name is None:
+                app_name = request.resolver_match.app_name
             self.fields["from_store"].queryset = FilterStore.objects.filter(
-                user=request.user
+                user=request.user, app_name=app_name, model_name=model_name
             )
 
     from_store = forms.ModelChoiceField(

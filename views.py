@@ -203,7 +203,15 @@ class FilterView(MultipleObjectTemplateResponseMixin, BaseFilterView):
     template_name_suffix = "_filter"
 
     def get_context_data(self, *args, **kwargs):
+
         context_data = super().get_context_data(*args, **kwargs)
+
+        # this is a fallback but it's better to define an instance of FilterstoreRetrieveForm
+        # in get_context_manager of the calling view and passing keywords request, app_name, and model_name
+        # example:
+        # context_data["filterstore_retrieve"] = FilterstoreRetrieveForm(
+        #     request=self.request, app_name="your_app_name", model_name="your_model_name"
+        # )
         context_data["filterstore_retrieve"] = FilterstoreRetrieveForm(
             request=self.request
         )
