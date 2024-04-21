@@ -29,14 +29,14 @@ class FilterStoexMixin(FilterMixin):
     filterset_fields = ALL_FIELDS
     strict = True
 
-    def get_filterset(self, filterset_class, from_store=None):
+    def get_filterset(self, filterset_class, from_store=None, delete=False):
         """
         Returns an instance of the filterset to be used in this view.
         """
         kwargs = self.get_filterset_kwargs(filterset_class, from_store)
         return filterset_class(**kwargs)
 
-    def get_filterset_kwargs(self, filterset_class, from_store=None):
+    def get_filterset_kwargs(self, filterset_class, from_store=None, delete=False):
         """
         Returns the keyword arguments for instantiating the filterset.
         """
@@ -86,14 +86,15 @@ class FilterStoexMixin(FilterMixin):
 class BaseFilterView(FilterStoexMixin, MultipleObjectMixin, View):
     def get(self, request, *args, **kwargs):
 
-        if request.GET.get("from_store"):
-            return HttpResponseRedirect(
-                reverse(self.filterstore_urlname, args=request.GET.get("from_store"))
-            )
+        #     if request.GET.get("from_store"):
+        #         return HttpResponseRedirect(
+        #             reverse(self.filterstore_urlname, args=request.GET.get("from_store"))
+        #         )
 
         filterset_class = self.get_filterset_class()
 
         from_store = kwargs.get("from_store")
+        print("tp244lh28")
         if from_store:
             self.filterset = self.get_filterset(filterset_class, from_store)
             self.object_list = self.filterset.qs
@@ -111,7 +112,27 @@ class BaseFilterView(FilterStoexMixin, MultipleObjectMixin, View):
     def post(self, request, *args, **kwargs):
 
         filterset_class = self.get_filterset_class()
-        self.filterset = self.get_filterset(filterset_class)
+        from_store = self.request.POST.get("from_store", None)
+        delete_filterstore = self.request.POST.get("delete_filterstore", None)
+
+        if from_store:
+            # if not delete, and if there is a filterstore_urlname, then redirect to self.filterstore_urlname
+            if delete_filterstore is None and hasattr(self, "filterstore_urlname"):
+                return HttpResponseRedirect(
+                    reverse(
+                        self.filterstore_urlname, args=request.POST.get("from_store")
+                    )
+                )
+            # at this point either the delete checkbox has been checked, or there is no filterstore_urlname to redirect to
+            # get the parameters from the filterstore and display the results without redirecting
+            self.filterset = self.get_filterset(filterset_class, from_store)
+            self.object_list = self.filterset.qs
+            if delete_filterstore:
+                print("tp244li50")
+                FilterStore.objects.get(pk=from_store, user=request.user).delete()
+        else:
+            self.filterset = self.get_filterset(filterset_class)
+            self.object_list = self.filterset.queryset.none()
 
         if (
             not self.filterset.is_bound
@@ -122,12 +143,15 @@ class BaseFilterView(FilterStoexMixin, MultipleObjectMixin, View):
         else:
             self.object_list = self.filterset.queryset.none()
 
+        if self.request.user.is_authenticated:
+            self.save_filterset(request)
+
+            if self.request.POST.get("delete"):
+                filterstore = FilterStore.objects.get(pk=from_store).delete()
+
         context = self.get_context_data(
             filter=self.filterset, object_list=self.object_list
         )
-
-        if self.request.user.is_authenticated:
-            self.save_filterset(request)
 
         if request.POST.get("csv"):
             return self.render_csv()
@@ -170,6 +194,9 @@ class BaseFilterView(FilterStoexMixin, MultipleObjectMixin, View):
 
             filterstore.save()
 
+    def delete_filterstore(self):
+        pass
+
     def render_csv(self):
         response = HttpResponse(
             content_type="text/csv",
@@ -194,11 +221,6 @@ class BaseFilterView(FilterStoexMixin, MultipleObjectMixin, View):
 
 
 class FilterView(MultipleObjectTemplateResponseMixin, BaseFilterView):
-    """
-    Render some list of objects with filter, set by `self.model` or
-    `self.queryset`.
-    `self.queryset` can actually be any iterable of items, not just a queryset.
-    """
 
     template_name_suffix = "_filter"
 
