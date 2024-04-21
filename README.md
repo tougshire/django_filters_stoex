@@ -4,6 +4,12 @@ A Django app which adds storage and some extra functions to Django Filters, and 
 
 Django Filters Stoex is designed to work with class based views (aka generic views) and has not been tested with DRF
 
+# Copyright Info
+
+This software contains code derived from from django_filters, to which the following copyright notice applies:
+
+Copyright (c) Alex Gaynor and individual contributors.
+All rights reserved.
 
 ## Description
 
