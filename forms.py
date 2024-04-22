@@ -20,6 +20,8 @@ class FilterstoreRetrieveForm(forms.Form):
                 app_name = request.resolver_match.app_name
             self.fields["from_store"].queryset = FilterStore.objects.filter(
                 user=request.user, app_name=app_name, model_name=model_name
+            ) | FilterStore.objects.filter(
+                app_name=app_name, model_name=model_name, all_users=True
             )
 
     from_store = forms.ModelChoiceField(

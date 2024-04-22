@@ -16,6 +16,7 @@ from .forms import CSVOptionForm, FilterstoreRetrieveForm, FilterstoreSaveForm
 from .models import FilterStore
 from urllib.parse import urlencode
 from django.template import loader
+from django.contrib import messages
 
 
 class FilterStoexMixin(FilterMixin):
@@ -128,8 +129,14 @@ class BaseFilterView(FilterStoexMixin, MultipleObjectMixin, View):
             self.filterset = self.get_filterset(filterset_class, from_store)
             self.object_list = self.filterset.qs
             if delete_filterstore:
-                print("tp244li50")
-                FilterStore.objects.get(pk=from_store, user=request.user).delete()
+                try:
+                    FilterStore.objects.get(pk=from_store, user=request.user).delete()
+                except FilterStore.DoesNotExist:
+                    messages.add_message(
+                        request,
+                        messages.INFO,
+                        "This filter cannot be deleted with this form",
+                    )
         else:
             self.filterset = self.get_filterset(filterset_class)
             self.object_list = self.filterset.queryset.none()
@@ -145,9 +152,6 @@ class BaseFilterView(FilterStoexMixin, MultipleObjectMixin, View):
 
         if self.request.user.is_authenticated:
             self.save_filterset(request)
-
-            if self.request.POST.get("delete"):
-                filterstore = FilterStore.objects.get(pk=from_store).delete()
 
         context = self.get_context_data(
             filter=self.filterset, object_list=self.object_list
