@@ -69,7 +69,20 @@ class ExampleFilter(django_filters.FilterSet):
     filterset_name = forms.CharField()
 
 ```
+#### In yourapp.yourmodel_filter.html
 
+##### Messages
+
+You should have a way of displaying messages.
+```
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+```
 ## Help
 
 This is still in early phases and much more has to be done.
