@@ -40,6 +40,7 @@ This software is licensed under the BSD 3-Clause "New" or "Revised" License, a c
 
 ### Configuring
 
+#### In settings.py
 
 ```
 INSTALLED_APPS = [
@@ -56,6 +57,19 @@ INSTALLED_APPS = [
     "app_your_using_to_list_objects.apps.AppYourUsingToListObjectsConfig
 ]
 ```
+
+#### In yourapp.filterset.py
+
+Define filters in a similar way that you would using django_filters
+
+In order to save a filter, you must define a field for the filter name.
+
+```
+class ExampleFilter(django_filters.FilterSet):
+    filterset_name = forms.CharField()
+
+```
+
 ## Help
 
 This is still in early phases and much more has to be done.
