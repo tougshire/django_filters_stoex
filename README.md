@@ -71,8 +71,6 @@ class ExampleFilter(django_filters.FilterSet):
 ```
 #### In yourapp.yourmodel_filter.html
 
-##### Messages
-
 You should have a way of displaying messages.
 ```
 {% if messages %}
