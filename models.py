@@ -15,6 +15,11 @@ class FilterStore(models.Model):
     name = models.CharField(
         "name", max_length=200, help_text="The name of this stored filter object"
     )
+    hide_date = models.BooleanField(
+        "hide date",
+        default=False,
+        help_text="If the date should be hidden in the display.  Only applies if name is not blank",
+    )
     app_name = models.CharField(
         "app",
         max_length=20,
@@ -37,6 +42,9 @@ class FilterStore(models.Model):
         return self.name if self.name else "-"
 
     def __str__(self):
+
+        if len(self.name.strip()) > 0 and self.hide_date:
+            return self.name
 
         return "{}:{}".format(self.get_name(), self.last_used.strftime("%Y-%m-%d"))
 
