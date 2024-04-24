@@ -12,7 +12,7 @@ from django_filters.constants import ALL_FIELDS
 from django_filters.filterset import filterset_factory
 from django_filters.views import FilterMixin
 
-from .forms import CSVOptionForm, FilterstoreRetrieveForm, FilterstoreSaveForm
+from .forms import FilterstoreRetrieveForm, FilterstoreSaveForm
 from .models import FilterStore
 from urllib.parse import urlencode
 from django.template import loader
@@ -87,15 +87,10 @@ class FilterStoexMixin(FilterMixin):
 class BaseFilterView(FilterStoexMixin, MultipleObjectMixin, View):
     def get(self, request, *args, **kwargs):
 
-        #     if request.GET.get("from_store"):
-        #         return HttpResponseRedirect(
-        #             reverse(self.filterstore_urlname, args=request.GET.get("from_store"))
-        #         )
-
         filterset_class = self.get_filterset_class()
 
         from_store = kwargs.get("from_store")
-        print("tp244lh28")
+
         if from_store:
             self.filterset = self.get_filterset(filterset_class, from_store)
             self.object_list = self.filterset.qs
@@ -157,9 +152,6 @@ class BaseFilterView(FilterStoexMixin, MultipleObjectMixin, View):
             filter=self.filterset, object_list=self.object_list
         )
 
-        if request.POST.get("csv"):
-            return self.render_csv()
-
         return self.render_to_response(context)
 
     def save_filterset(self, request):
@@ -201,28 +193,6 @@ class BaseFilterView(FilterStoexMixin, MultipleObjectMixin, View):
     def delete_filterstore(self):
         pass
 
-    def render_csv(self):
-        response = HttpResponse(
-            content_type="text/csv",
-            headers={"Content-Disposition": 'attachment; filename="people.csv"'},
-        )
-        writer = csv.writer(response)
-        data = []
-        if hasattr(self.filterset.Meta, "csv_fields"):
-            for object in self.object_list:
-                row = []
-                for field in self.filterset.Meta.csv_fields:
-                    try:
-                        row.append(getattr(object, field))
-                    except Exception as e:
-                        pass
-                writer.writerow(row)
-        else:
-            for object in self.object_list:
-                row = [object]
-                writer.writerow(row)
-        return response
-
 
 class FilterView(MultipleObjectTemplateResponseMixin, BaseFilterView):
 
@@ -242,6 +212,5 @@ class FilterView(MultipleObjectTemplateResponseMixin, BaseFilterView):
             request=self.request
         )
         context_data["filterstore_save"] = FilterstoreSaveForm()
-        context_data["as_csv"] = CSVOptionForm()
 
         return context_data
