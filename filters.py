@@ -1,4 +1,4 @@
-from django_filters import Filter
+from django_filters import Filter, OrderingFilter
 from django_filters.constants import EMPTY_VALUES
 from django.db.models import Q
 
@@ -42,3 +42,12 @@ class CrossFieldSearchFilter(Filter):
         if self.distinct:
             qs = qs.distinct()
         return qs
+
+
+class ChainableOrderingFilter(OrderingFilter):
+
+    def filter(self, qs, value):
+        initial_ordering = qs.query.order_by
+        qs = super().filter(qs, value)
+
+        return super().filter(qs, value).order_by(*initial_ordering, *qs.query.order_by)
