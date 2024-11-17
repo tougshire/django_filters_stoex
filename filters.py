@@ -1,6 +1,9 @@
-from django_filters import Filter, OrderingFilter
+from django_filters import Filter, DateRangeFilter, OrderingFilter
+from django_filters.filters import _truncate
 from django_filters.constants import EMPTY_VALUES
 from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
+from django.utils.timezone import now
 
 
 class CrossFieldSearchFilter(Filter):
@@ -51,3 +54,37 @@ class ChainableOrderingFilter(OrderingFilter):
         qs = super().filter(qs, value)
 
         return super().filter(qs, value).order_by(*initial_ordering, *qs.query.order_by)
+
+class ExpandedDateRangeFilter(DateRangeFilter):
+    choices = DateRangeFilter.choices + [
+        ("aftertoday", _("After Today")),
+        ("beforetoday", _("Before Today")),
+        ("todayorafter", _("Today or After")),
+        ("todayorbefore", _("Today or Before")),
+
+    ]
+
+    filters = DateRangeFilter.filters
+    filters.update({
+        "aftertoday": lambda qs, name: qs.filter(
+            **{
+                "%s__gt" % name: _truncate(now()),
+            }
+        ),
+        "todayorafter": lambda qs, name: qs.filter(
+            **{
+                "%s__gte" % name: _truncate(now()),
+            }
+        ),
+        "beforetoday": lambda qs, name: qs.filter(
+            **{
+                "%s__lt" % name: _truncate(now()),
+            }
+        ),
+        "todayorbefore": lambda qs, name: qs.filter(
+            **{
+                "%s__lte" % name: _truncate(now()),
+            }
+        ),
+    })
+
