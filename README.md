@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "tougshire_auth.apps.TougshireAuthConfig",
     "touglates.apps.TouglatesConfig",
     "django_filters",
     "django_filters_stoex.apps.DjangoFiltersStoexConfig",
