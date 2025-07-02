@@ -27,7 +27,7 @@ class CrossFieldSearchFilter(Filter):
             exclude=exclude,
             **kwargs
         )
-        self.field_names = field_name.split(",")
+        self.field_names = [name.strip() for name in field_name.split(",")]
 
     def filter(self, qs, value):
         if value in EMPTY_VALUES:
