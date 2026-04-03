@@ -52,7 +52,7 @@ class FilterStoexMixin(FilterMixin):
             data = self.request.POST
         else:
             try:
-                filterstore = FilterStore.objects.filter(user=self.request.user).first()
+                filterstore = FilterStore.objects.filter(user=self.request.user, app_name=self.request.resolver_match.app_name).first()
                 data = QueryDict(filterstore.data)
             except Exception as e:
                 data = None
