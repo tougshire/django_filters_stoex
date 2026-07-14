@@ -1,10 +1,19 @@
-from django_filters import Filter, DateRangeFilter, OrderingFilter
+from django_filters import (
+    Filter, DateRangeFilter, OrderingFilter, BooleanFilter
+)
+from django_filters.widgets import BooleanWidget
 from django_filters.filters import _truncate
 from django_filters.constants import EMPTY_VALUES
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django.utils.timezone import now
 
+
+class AltBooleanWidget(BooleanWidget):
+
+    def __init__(self, attrs=None):
+        choices = (("", _("Any")), ("true", _("Yes")) ,("false", _("No")))
+        super(BooleanWidget, self).__init__(attrs, choices)
 
 class CrossFieldSearchFilter(Filter):
     def __init__(
@@ -44,6 +53,71 @@ class CrossFieldSearchFilter(Filter):
         qs = self.get_method(qs)(Qcombined)
         if self.distinct:
             qs = qs.distinct()
+        return qs
+
+class BlankNullFilter(BooleanFilter):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", AltBooleanWidget)
+
+        super(BooleanFilter, self).__init__(*args, **kwargs)
+
+    def filter(self, qs, value):
+        lookup_exact = '%s__exact' % (self.field_name)
+        lookup_gt = '%s__gt' % (self.field_name)
+        lookup_null = '%s__isnull' % (self.field_name)
+        if value is True:
+            Qcombined = (
+                Q(**{lookup_exact: ''}) | Q(**{lookup_null: True})
+            )
+            return self.get_method(qs)(Qcombined)
+        if value is False:
+            Qcombined = (
+                Q(**{lookup_gt: ''}) & Q(**{lookup_null: False})
+            )
+            return self.get_method(qs)(Qcombined)
+        return qs
+
+class BlankFilter(BooleanFilter):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", AltBooleanWidget)
+
+        super(BooleanFilter, self).__init__(*args, **kwargs)
+
+    def filter(self, qs, value):
+        lookup_exact = '%s__exact' % (self.field_name)
+        lookup_gt = '%s__gt' % (self.field_name)
+        if value is True:
+            Qfilter = (
+                Q(**{lookup_exact: ''})
+            )
+            return self.get_method(qs)(Qfilter)
+        if value is False:
+            Qfilter = (
+                Q(**{lookup_gt: ''})
+            )
+            return self.get_method(qs)(Qfilter)
+        return qs
+class NullFilter(BooleanFilter):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", AltBooleanWidget)
+
+        super(BooleanFilter, self).__init__(*args, **kwargs)
+
+    def filter(self, qs, value):
+        lookup_null = '%s__isnull' % (self.field_name)
+        if value is True:
+            Qfilter = (
+                Q(**{lookup_null: True})
+            )
+            return self.get_method(qs)(Qfilter)
+        if value is False:
+            Qfilter = (
+                Q(**{lookup_null: False})
+            )
+            return self.get_method(qs)(Qfilter)
         return qs
 
 
